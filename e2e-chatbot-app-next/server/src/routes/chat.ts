@@ -206,9 +206,15 @@ chatRouter.post('/', requireAuth, async (req: Request, res: Response) => {
     const streamId = generateUUID();
 
     const model = await myProvider.languageModel(selectedChatModel);
+    const forwardedAccessToken = req.headers['x-forwarded-access-token'];
     const result = streamText({
       model,
       messages: convertToModelMessages(uiMessages),
+      ...(forwardedAccessToken && {
+        headers: {
+          'x-forwarded-access-token': forwardedAccessToken as string,
+        },
+      }),
       onFinish: ({ usage }) => {
         finalUsage = usage;
       },
